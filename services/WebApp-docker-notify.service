@@ -1,0 +1,41 @@
+# Installation and launch instructions:
+#
+# 1. Build the Docker image first:
+#    dotnet publish kestrelTests.csproj -c Release -r linux-x64 --self-contained -o ./publish
+#    docker build -t test-kestrel .
+#
+# 2. Install this service:
+#    sudo systemctl enable /mnt/hgfs/kestrel/services/WebApp-docker-notify.service
+#
+# 3. Start the service:
+#    sudo systemctl start WebApp-docker-notify.service
+#
+# 4. Monitor the service:
+#    sudo systemctl status WebApp-docker-notify.service
+#    sudo journalctl -u WebApp-docker-notify.service -f
+#
+[Unit]
+Description=Docker context notify service (no ProtectProc)
+Documentation=https://github.com/dotnet/runtime/issues/88660
+
+[Service]
+Type=notify
+NotifyAccess=all
+User=user
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=kestrel-docker-notify
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_NOLOGO=true
+StandardError=journal
+StandardOutput=journal
+StandardInput=null
+ExecStart=/usr/bin/docker run --rm \
+    --name kestrel-test-notify \
+    -e NOTIFY_SOCKET=/run/systemd/notify \
+    -v /run/systemd/notify:/run/systemd/notify \
+    test-kestrel
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,36 @@
+# Installation and launch instructions:
+#
+# 1. Build the Docker image first:
+#    dotnet publish kestrelTests.csproj -c Release -r linux-x64 --self-contained -o ./publish
+#    docker build -t test-kestrel .
+#
+# 2. Install this service:
+#    sudo systemctl enable /mnt/hgfs/kestrel/services/WebApp-docker-basic.service
+#
+# 3. Start the service:
+#    sudo systemctl start WebApp-docker-basic.service
+#
+# 4. Monitor the service:
+#    sudo systemctl status WebApp-docker-basic.service
+#    sudo journalctl -u WebApp-docker-basic.service -f
+#
+[Unit]
+Description=Docker context basic service (Microsoft-like baseline)
+Documentation=https://github.com/dotnet/runtime/issues/88660
+
+[Service]
+Type=simple
+User=user
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=kestrel-docker-basic
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_NOLOGO=true
+StandardError=journal
+StandardOutput=journal
+StandardInput=null
+ExecStart=/usr/bin/docker run --rm --name kestrel-test-basic test-kestrel
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <UseLocalRuntimeBits>true</UseLocalRuntimeBits>
+    <RuntimeRepoRoot>/path/to/dotnet/runtime</RuntimeRepoRoot>
+    <LocalRuntimeFrameworkVersion>11.0.0-dev</LocalRuntimeFrameworkVersion>
+  </PropertyGroup>
+</Project>

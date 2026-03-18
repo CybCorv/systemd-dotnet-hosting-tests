@@ -1,0 +1,37 @@
+# Installation and launch instructions:
+#
+# 1. Build the Podman image first:
+#    dotnet publish kestrelTests.csproj -c Release -r linux-x64 --self-contained -o ./publish
+#    podman build -t test-kestrel .
+#
+# 2. Install this service:
+#    systemctl --user enable /mnt/hgfs/kestrel/services/WebApp-podman-notify-protectproc.service
+#
+# 3. Start the service:
+#    systemctl --user start WebApp-podman-notify-protectproc.service
+#
+# 4. Monitor the service:
+#    systemctl --user status WebApp-podman-notify-protectproc.service
+#    journalctl --user -u WebApp-podman-notify-protectproc.service -f
+#
+[Unit]
+Description=Podman context notify service with ProtectProc=invisible
+Documentation=https://github.com/dotnet/runtime/issues/88660
+
+[Service]
+Type=notify
+NotifyAccess=all
+Restart=always
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=kestrel-podman-notify-protectproc
+StandardError=journal
+StandardOutput=journal
+StandardInput=null
+# In Podman context, ProtectProc applies to the podman client process managed by systemd.
+ProtectProc=invisible
+ProcSubset=pid
+ExecStart=/usr/bin/podman run --rm \
+    --sdnotify=container \
+    --name kestrel-test-notify-protectproc \
+    test-kestrel

@@ -1,0 +1,35 @@
+# Installation and launch instructions:
+#
+# 1. Install this service:
+#    sudo systemctl enable /mnt/hgfs/kestrel/services/WebApp-system-notify.service
+#
+# 2. Start the service:
+#    sudo systemctl start WebApp-system-notify.service
+#
+# 3. Monitor the service:
+#    sudo systemctl status WebApp-system-notify.service
+#    sudo journalctl -u WebApp-system-notify.service -f
+#
+[Unit]
+Description=System context notify service (no ProtectProc)
+Documentation=https://github.com/dotnet/runtime/issues/88660
+
+[Service]
+Type=notify
+WorkingDirectory=/mnt/hgfs/kestrel
+ExecStart=/mnt/hgfs/kestrel/publish/kestrelTests
+Restart=always
+# Restart service after 10 seconds if the app crashes.
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=kestrel-system-notify
+User=user
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_NOLOGO=true
+Environment=DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+StandardError=journal
+StandardOutput=journal
+StandardInput=null
+
+[Install]
+WantedBy=multi-user.target

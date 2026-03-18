@@ -1,0 +1,38 @@
+# Installation and launch instructions:
+#
+# 1. Install this service:
+#    sudo systemctl enable /mnt/hgfs/kestrel/services/WebApp-system-notify-protectproc.service
+#
+# 2. Start the service:
+#    sudo systemctl start WebApp-system-notify-protectproc.service
+#
+# 3. Monitor the service:
+#    sudo systemctl status WebApp-system-notify-protectproc.service
+#    sudo journalctl -u WebApp-system-notify-protectproc.service -f
+#
+[Unit]
+Description=System context notify service with ProtectProc=invisible
+Documentation=https://github.com/dotnet/runtime/issues/88660
+
+[Service]
+Type=notify
+WorkingDirectory=/mnt/hgfs/kestrel
+ExecStart=/mnt/hgfs/kestrel/publish/kestrelTests
+Restart=always
+# Restart service after 10 seconds if the app crashes.
+RestartSec=10
+KillSignal=SIGINT
+SyslogIdentifier=kestrel-system-notify-protectproc
+User=user
+Environment=ASPNETCORE_ENVIRONMENT=Production
+Environment=DOTNET_NOLOGO=true
+Environment=DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+StandardError=journal
+StandardOutput=journal
+StandardInput=null
+# ProtectProc=invisible restricts /proc visibility and is the key repro condition.
+ProtectProc=invisible
+ProcSubset=pid
+
+[Install]
+WantedBy=multi-user.target
