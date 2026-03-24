@@ -109,6 +109,7 @@ USER_UNITS=(
 	WebApp-podman-basic.service
 	WebApp-podman-notify.service
 	WebApp-podman-notify-protectproc.service
+	WebApp-podman-notify-execpid-mismatch.service
 )
 
 sudo systemctl daemon-reload
@@ -132,6 +133,24 @@ sudo journalctl -u "$UNIT" -f
 
 # Or for the Podman repro case (no sudo required):
 UNIT=WebApp-podman-notify-protectproc.service
+systemctl --user restart "$UNIT"
+systemctl --user status "$UNIT"
+journalctl --user -u "$UNIT" -f
+```
+
+## Additional Regression Test
+
+This repository also includes a targeted regression case for `SYSTEMD_EXEC_PID` mismatch fallback behavior:
+- `services/WebApp-podman-notify-execpid-mismatch.service`
+
+Purpose:
+- Force `SYSTEMD_EXEC_PID` to a non-matching value inside the container.
+- Validate that detection still succeeds via fallback container checks (`PID 1 + NOTIFY_SOCKET`) when runtime logic is defensive.
+
+Run:
+
+```bash
+UNIT=WebApp-podman-notify-execpid-mismatch.service
 systemctl --user restart "$UNIT"
 systemctl --user status "$UNIT"
 journalctl --user -u "$UNIT" -f
