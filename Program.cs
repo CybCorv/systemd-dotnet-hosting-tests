@@ -1,21 +1,34 @@
 using Microsoft.Extensions.Hosting.Systemd;
 
+// Capture before UseSystemd
+var notifySocketBefore = Environment.GetEnvironmentVariable("NOTIFY_SOCKET") ?? "(unset)";
+var systemdExecPidBefore = Environment.GetEnvironmentVariable("SYSTEMD_EXEC_PID") ?? "(unset)";
+var journalStreamBefore = Environment.GetEnvironmentVariable("JOURNAL_STREAM") ?? "(unset)";
+
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSystemd();
 var app = builder.Build();
 
-PrintDiagnostics(app.Logger);
+PrintDiagnostics(app.Logger, notifySocketBefore, systemdExecPidBefore, journalStreamBefore);
 
 app.MapGet("/", () => "Hello World!");
 app.Run();
 
-static void PrintDiagnostics(ILogger logger)
+static void PrintDiagnostics(ILogger logger, string notifySocketBefore, string systemdExecPidBefore, string journalStreamBefore)
 {
     var systemdDetection = $@"=== Systemd Detection Diagnostics ===
   .NET Version: {Environment.Version}
   OS Platform: {Environment.OSVersion.Platform}
   Process ID: {Environment.ProcessId}
-  IsSystemdService: {SystemdHelpers.IsSystemdService()}";
+  IsSystemdService: {SystemdHelpers.IsSystemdService()}
+  --- Before UseSystemd ---
+  NOTIFY_SOCKET: {notifySocketBefore}
+  SYSTEMD_EXEC_PID: {systemdExecPidBefore}
+  JOURNAL_STREAM: {journalStreamBefore}
+  --- After UseSystemd ---
+  NOTIFY_SOCKET: {Environment.GetEnvironmentVariable("NOTIFY_SOCKET") ?? "(unset)"}
+  SYSTEMD_EXEC_PID: {Environment.GetEnvironmentVariable("SYSTEMD_EXEC_PID") ?? "(unset)"}
+  JOURNAL_STREAM: {Environment.GetEnvironmentVariable("JOURNAL_STREAM") ?? "(unset)"}";
     logger.LogInformation("{SystemdDetection}", systemdDetection);
 
     var envVariables = Environment.GetEnvironmentVariables()
