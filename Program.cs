@@ -9,16 +9,18 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSystemd();
 var app = builder.Build();
 
-PrintDiagnostics(app.Logger, notifySocketBefore, systemdExecPidBefore, journalStreamBefore);
+PrintDiagnostics(app.Logger, notifySocketBefore, systemdExecPidBefore, journalStreamBefore, app.Services);
 
 app.MapGet("/", () => "Hello World!");
 app.Run();
 
-static void PrintDiagnostics(ILogger logger, string notifySocketBefore, string systemdExecPidBefore, string journalStreamBefore)
+static void PrintDiagnostics(ILogger logger, string notifySocketBefore, string systemdExecPidBefore, string journalStreamBefore, IServiceProvider services)
 {
+    var lifetime = services.GetRequiredService<IHostLifetime>();
     var systemdDetection = $@"=== Systemd Detection Diagnostics ===
   .NET Version: {Environment.Version}
   OS Platform: {Environment.OSVersion.Platform}
+  IHostLifetime: {lifetime.GetType().Name}
   Process ID: {Environment.ProcessId}
   IsSystemdService: {SystemdHelpers.IsSystemdService()}
   --- Before UseSystemd ---
@@ -29,6 +31,7 @@ static void PrintDiagnostics(ILogger logger, string notifySocketBefore, string s
   NOTIFY_SOCKET: {Environment.GetEnvironmentVariable("NOTIFY_SOCKET") ?? "(unset)"}
   SYSTEMD_EXEC_PID: {Environment.GetEnvironmentVariable("SYSTEMD_EXEC_PID") ?? "(unset)"}
   JOURNAL_STREAM: {Environment.GetEnvironmentVariable("JOURNAL_STREAM") ?? "(unset)"}";
+
     logger.LogInformation("{SystemdDetection}", systemdDetection);
 
     var envVariables = Environment.GetEnvironmentVariables()
